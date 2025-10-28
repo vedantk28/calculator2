@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Suryacore Feed Formulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+        
+        .main-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 1rem;
+            font-size: clamp(1.2rem, 4vw, 2rem);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            padding: 10px;
+        }
+        
+        .auto-save-indicator {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .save-icon {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        
+        .section-header {
+            color: #4682B4;
+            border-bottom: 2px solid #4682B4;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            font-size: clamp(1rem, 3vw, 1.3rem);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .total-quantity-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            margin-bottom: 12px;
+            transition: border-color 0.3s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #4682B4;
+        }
+        
+        .ingredient-count {
+            color: #666;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            margin-bottom: 8px;
+        }
+        
+        .ingredient-list {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .ingredient-checkbox {
+            display: block;
+            padding: 8px;
+            margin: 3px 0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-radius: 3px;
+            font-size: clamp(0.85rem, 2vw, 0.95rem);
+        }
+        
+        .ingredient-checkbox:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .ingredient-checkbox input {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+        
+        .selected-ingredients {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        
+        .ingredient-item {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin: 6px 0;
+            border-radius: 5px;
+            border-left: 4px solid #2196f3;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 8px;
+            align-items: center;
+            position: relative;
+            transition: border-color 0.3s;
+        }
+        
+        .ingredient-item.valid {
+            border-left-color: #4ade80;
+        }
+        
+        .ingredient-item.invalid {
+            border-left-color: #f87171;
+        }
+        
+        .ingredient-name {
+            font-weight: bold;
+            color: #333;
+            font-size: clamp(0.85rem, 2vw, 0.95rem);
+            word-break: break-word;
+        }
+        
+        .input-field {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .input-field label {
+            font-size: clamp(0.75rem, 2vw, 0.8rem);
+            color: #666;
+            margin-bottom: 3px;
+        }
+        
+        .input-field input {
+            padding: 6px 25px 6px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: clamp(0.85rem, 2vw, 0.9rem);
+            width: 100%;
+            transition: all 0.3s;
+        }
+        
+        .input-field input:focus {
+            outline: none;
+            border-color: #4682B4;
+        }
+        
+        .input-field input.valid {
+            border-color: #4ade80;
+            background-color: #f0fdf4;
+        }
+        
+        .input-field input.invalid {
+            border-color: #f87171;
+            background-color: #fef2f2;
+        }
+        
+        .validation-icon {
+            position: absolute;
+            right: 8px;
+            top: 28px;
+            font-size: 14px;
+            pointer-events: none;
+        }
+        
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding-top: 10px;
+        }
+        
+        .btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 5px;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            touch-action: manipulation;
+            position: relative;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .results-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .result-item {
+            background-color: #f8f9fa;
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 5px;
+            border-left: 3px solid #28a745;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .result-label {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .result-value {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 350px;
+        }
+        
+        .toast {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease-out;
+            border-left: 4px solid;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+        
+        .toast.success { border-left-color: #4ade80; }
+        .toast.error { border-left-color: #f87171; }
+        .toast.warning { border-left-color: #fbbf24; }
+        .toast.info { border-left-color: #60a5fa; }
+        
+        .toast-icon {
+            font-size: 20px;
+        }
+        
+        .toast-message {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+        
+        .info-message, .warning-message, .error-message {
+            padding: 12px;
+            border-radius: 5px;
+            margin: 8px 0;
+            font-size: clamp(0.85rem, 2vw, 0.9rem);
+        }
+        
+        .info-message {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .warning-message {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        .error-message {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .keyboard-shortcuts {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .keyboard-shortcuts.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .kbd {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-container {
+                gap: 12px;
+            }
+            
+            .panel {
+                padding: 12px;
+            }
+            
+            .ingredient-list {
+                max-height: 200px;
+            }
+            
+            .selected-ingredients {
+                max-height: 250px;
+            }
+            
+            .results-container {
+                max-height: 400px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+            
+            .main-header {
+                margin-bottom: 0.8rem;
+                font-size: 1.2rem;
+            }
+            
+            .main-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto;
+                gap: 10px;
+            }
+            
+            .panel {
+                padding: 12px;
+                width: 100%;
+            }
+            
+            .ingredient-item {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            
+            .ingredient-list {
+                max-height: 180px;
+            }
+            
+            .selected-ingredients {
+                max-height: 200px;
+            }
+            
+            .results-container {
+                max-height: 300px;
+            }
+            
+            .button-group {
+                gap: 8px;
+            }
+            
+            .btn {
+                padding: 10px 12px;
+            }
+            
+            .toast-container {
+                right: 10px;
+                left: 10px;
+                max-width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .main-header {
+                font-size: 1rem;
+                margin-bottom: 0.6rem;
+            }
+            
+            .section-header {
+                font-size: 1rem;
+            }
+            
+            .search-box {
+                padding: 8px;
+                font-size: 0.9rem;
+            }
+            
+            .ingredient-list {
+                max-height: 150px;
+            }
+            
+            .selected-ingredients {
+                max-height: 180px;
+            }
+            
+            .results-container {
+                max-height: 250px;
+            }
+        }
+        
+        @media (hover: none) and (pointer: coarse) {
+            .btn:hover {
+                transform: none;
+            }
+            
+            .btn:active:not(:disabled) {
+                transform: scale(0.98);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <h1 class="main-header">🌾 Suryacore Feed Formulator - v2.0</h1>
+    <div class="auto-save-indicator">
+        <span class="save-icon"></span>
+        <span id="autoSaveStatus">Auto-save enabled</span>
+    </div>
+    
+    <div class="main-container">
+        <div class="panel">
+            <h3 class="section-header">
+                <span>📋 ADD INGREDIENTS</span>
+                <span class="total-quantity-badge" id="totalQuantityBadge">0 kg</span>
+            </h3>
+            
+            <input type="text" id="searchBox" class="search-box" placeholder="🔍 Search ingredients... (Ctrl+K)">
+            <div id="ingredientCount" class="ingredient-count"></div>
+            
+            <div class="ingredient-list" id="ingredientList">
+                {% for cell, label in ingredients %}
+                <label class="ingredient-checkbox">
+                    <input type="checkbox" value="{{ cell }}" data-label="{{ label }}">
+                    {{ label }}
+                </label>
+                {% endfor %}
+            </div>
+            
+            <h4>Current Ingredients:</h4>
+            <div class="selected-ingredients" id="selectedIngredients">
+                <div class="info-message">No ingredients selected yet. Use checkboxes above.</div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-primary" id="calculateBtn" disabled>🔍 Calculate</button>
+                <button class="btn btn-secondary" id="clearBtn">🗑️ Clear All</button>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h3 class="section-header">📊 Calculation Results</h3>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Calculating...</p>
+            </div>
+            
+            <div class="results-container" id="resultsContainer">
+                <div class="info-message">
+                    👆 Add ingredients from the left panel and click 'Calculate' to see results.
+                    <br><br>
+                    <strong>Instructions:</strong>
+                    <ol style="margin-top: 10px; padding-left: 20px;">
+                        <li>Select ingredients using the checkboxes</li>
+                        <li>Enter the quantity and cost per kg</li>
+                        <li>Click 'Calculate' to see nutritional analysis</li>
+                        <li>Use 'Clear All' to reset the formulation</li>
+                    </ol>
+                    <br>
+                    <strong>💡 Keyboard Shortcuts:</strong>
+                    <ul style="margin-top: 10px; padding-left: 20px;">
+                        <li><kbd>Enter</kbd> - Calculate results</li>
+                        <li><kbd>Ctrl+K</kbd> - Focus search</li>
+                        <li><kbd>Esc</kbd> - Clear search</li>
+                    </ul>
+                    <br>
+                    <strong>✨ Features:</strong>
+                    <ul style="margin-top: 10px; padding-left: 20px;">
+                        <li>Auto-save every 2 seconds</li>
+                        <li>Real-time validation</li>
+                        <li>Data persists on page refresh</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="keyboard-shortcuts" id="keyboardShortcuts">
+        <div><span class="kbd">Enter</span> Calculate | <span class="kbd">Ctrl+K</span> Search | <span class="kbd">Esc</span> Clear</div>
+    </div>
+
+    <script>
+        // Debounce utility
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        // Toast notification system
+        const Toast = {
+            show(message, type = 'info', duration = 3000) {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                
+                const icons = {
+                    success: '✓',
+                    error: '✗',
+                    warning: '⚠',
+                    info: 'ℹ'
+                };
+                
+                toast.innerHTML = `
+                    <span class="toast-icon">${icons[type] || icons.info}</span>
+                    <div class="toast-message">${message}</div>
+                `;
+                
+                container.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.animation = 'slideOut 0.3s ease-out';
+                    setTimeout(() => toast.remove(), 300);
+                }, duration);
+            }
+        };
+        
+        // State management
+        let selectedIngredients = new Set();
+        let ingredientData = {};
+        let lastSaveTime = null;
+        
+        const searchBox = document.getElementById('searchBox');
+        const ingredientList = document.getElementById('ingredientList');
+        const ingredientCount = document.getElementById('ingredientCount');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const totalQuantityBadge = document.getElementById('totalQuantityBadge');
+        const checkboxes = ingredientList.querySelectorAll('input[type="checkbox"]');
+        
+        const totalIngredients = checkboxes.length;
+        
+        // Validation constants
+        const QUANTITY_MIN = 0;
+        const QUANTITY_MAX = 100000;
+        const COST_MIN = 0;
+        const COST_MAX = 10000;
+        
+        // Load saved state from localStorage
+        function loadSavedState() {
+            try {
+                const savedData = localStorage.getItem('feedFormulatorState');
+                if (savedData) {
+                    const state = JSON.parse(savedData);
+                    ingredientData = state.ingredientData || {};
+                    selectedIngredients = new Set(state.selectedIngredients || []);
+                    
+                    // Restore checkboxes
+                    checkboxes.forEach(cb => {
+                        if (selectedIngredients.has(cb.value)) {
+                            cb.checked = true;
+                        }
+                    });
+                    
+                    updateSelectedIngredients();
+                    Toast.show('Previous formulation restored', 'success', 2000);
+                    updateAutoSaveStatus();
+                }
+            } catch (error) {
+                console.error('Error loading saved state:', error);
+            }
+        }
+        
+        // Save state to localStorage
+        function saveState() {
+            try {
+                const state = {
+                    selectedIngredients: Array.from(selectedIngredients),
+                    ingredientData: ingredientData,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem('feedFormulatorState', JSON.stringify(state));
+                lastSaveTime = Date.now();
+                updateAutoSaveStatus();
+            } catch (error) {
+                console.error('Error saving state:', error);
+                Toast.show('Failed to auto-save', 'error', 2000);
+            }
+        }
+        
+        // Debounced save
+        const debouncedSave = debounce(saveState, 2000);
+        
+        // Update auto-save status
+        function updateAutoSaveStatus() {
+            const statusEl = document.getElementById('autoSaveStatus');
+            if (lastSaveTime) {
+                const secondsAgo = Math.floor((Date.now() - lastSaveTime) / 1000);
+                if (secondsAgo < 60) {
+                    statusEl.textContent = `Saved ${secondsAgo}s ago`;
+                } else {
+                    const minutesAgo = Math.floor(secondsAgo / 60);
+                    statusEl.textContent = `Saved ${minutesAgo}m ago`;
+                }
+            }
+        }
+        
+        // Update status every 5 seconds
+        setInterval(updateAutoSaveStatus, 5000);
+        
+        // Validate input value
+        function validateInput(value, min, max) {
+            const num = parseFloat(value);
+            return !isNaN(num) && num >= min && num <= max;
+        }
+        
+        // Update total quantity badge
+        function updateTotalQuantity() {
+            let total = 0;
+            for (const cell in ingredientData) {
+                total += ingredientData[cell].quantity || 0;
+            }
+            totalQuantityBadge.textContent = `${total.toFixed(2)} kg`;
+        }
+        
+        // Check if form is valid
+        function isFormValid() {
+            if (selectedIngredients.size === 0) return false;
+            
+            for (const cell of selectedIngredients) {
+                if (!ingredientData[cell]) return false;
+                
+                const qty = ingredientData[cell].quantity || 0;
+                if (qty <= 0 || !validateInput(qty, QUANTITY_MIN, QUANTITY_MAX)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        // Update calculate button state
+        function updateCalculateButton() {
+            calculateBtn.disabled = !isFormValid();
+        }
+        
+        // Update ingredient count
+        function updateIngredientCount() {
+            const visibleCount = Array.from(checkboxes).filter(cb => 
+                cb.parentElement.style.display !== 'none'
+            ).length;
+            
+            if (searchBox.value.trim()) {
+                ingredientCount.textContent = `Showing ${visibleCount} of ${totalIngredients} ingredients`;
+            } else {
+                ingredientCount.textContent = `Showing all ${totalIngredients} ingredients`;
+            }
+        }
+        
+        // Search functionality with debounce
+        const debouncedSearch = debounce(function(searchTerm) {
+            checkboxes.forEach(checkbox => {
+                const label = checkbox.dataset.label.toLowerCase();
+                const parent = checkbox.parentElement;
+                
+                if (label.includes(searchTerm)) {
+                    parent.style.display = 'block';
+                } else {
+                    parent.style.display = 'none';
+                }
+            });
+            
+            updateIngredientCount();
+        }, 300);
+        
+        searchBox.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            debouncedSearch(searchTerm);
+        });
+        
+        updateIngredientCount();
+        
+        // Checkbox change handler
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    selectedIngredients.add(this.value);
+                } else {
+                    selectedIngredients.delete(this.value);
+                    delete ingredientData[this.value];
+                }
+                updateSelectedIngredients();
+                updateCalculateButton();
+                updateTotalQuantity();
+                debouncedSave();
+            });
+        });
+        
+        // Update selected ingredients display
+        function updateSelectedIngredients() {
+            const container = document.getElementById('selectedIngredients');
+            
+            if (selectedIngredients.size === 0) {
+                container.innerHTML = '<div class="info-message">No ingredients selected yet. Use checkboxes above.</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            Array.from(selectedIngredients).sort().forEach(cell => {
+                const checkbox = Array.from(checkboxes).find(cb => cb.value === cell);
+                const label = checkbox.dataset.label;
+                
+                const savedData = ingredientData[cell] || { quantity: 0, cost: 0 };
+                const qtyValid = validateInput(savedData.quantity, QUANTITY_MIN, QUANTITY_MAX) && savedData.quantity > 0;
+                const costValid = validateInput(savedData.cost, COST_MIN, COST_MAX);
+                const itemValid = qtyValid && costValid;
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `ingredient-item ${itemValid ? 'valid' : 'invalid'}`;
+                itemDiv.innerHTML = `
+                    <div class="ingredient-name">${label}</div>
+                    <div class="input-field">
+                        <label>Qty (kg)</label>
+                        <input type="number" min="${QUANTITY_MIN}" max="${QUANTITY_MAX}" step="0.1" 
+                               value="${savedData.quantity}" 
+                               data-cell="${cell}" data-type="quantity" 
+                               class="qty-input ${qtyValid ? 'valid' : 'invalid'}">
+                        <span class="validation-icon">${qtyValid ? '✓' : '✗'}</span>
+                    </div>
+                    <div class="input-field">
+                        <label>Cost (₹/kg)</label>
+                        <input type="number" min="${COST_MIN}" max="${COST_MAX}" step="0.01" 
+                               value="${savedData.cost}" 
+                               data-cell="${cell}" data-type="cost" 
+                               class="cost-input ${costValid ? 'valid' : 'invalid'}">
+                        <span class="validation-icon">${costValid ? '✓' : '✗'}</span>
+                    </div>
+                `;
+                container.appendChild(itemDiv);
+            });
+            
+            // Add input listeners with debounce
+            container.querySelectorAll('input[type="number"]').forEach(input => {
+                const debouncedUpdate = debounce(function() {
+                    const cell = input.dataset.cell;
+                    const type = input.dataset.type;
+                    const value = parseFloat(input.value) || 0;
+                    
+                    if (!ingredientData[cell]) {
+                        ingredientData[cell] = { quantity: 0, cost: 0 };
+                    }
+                    ingredientData[cell][type] = value;
+                    
+                    // Validate
+                    const min = type === 'quantity' ? QUANTITY_MIN : COST_MIN;
+                    const max = type === 'quantity' ? QUANTITY_MAX : COST_MAX;
+                    const isValid = validateInput(value, min, max) && (type === 'cost' || value > 0);
+                    
+                    input.classList.toggle('valid', isValid);
+                    input.classList.toggle('invalid', !isValid);
+                    
+                    // Update validation icon
+                    const icon = input.parentElement.querySelector('.validation-icon');
+                    if (icon) {
+                        icon.textContent = isValid ? '✓' : '✗';
+                    }
+                    
+                    // Update parent item border
+                    const itemDiv = input.closest('.ingredient-item');
+                    const allInputs = itemDiv.querySelectorAll('input[type="number"]');
+                    const allValid = Array.from(allInputs).every(inp => inp.classList.contains('valid'));
+                    itemDiv.classList.toggle('valid', allValid);
+                    itemDiv.classList.toggle('invalid', !allValid);
+                    
+                    updateCalculateButton();
+                    updateTotalQuantity();
+                    debouncedSave();
+                }, 500);
+                
+                input.addEventListener('input', debouncedUpdate);
+            });
+        }
+        
+        // Calculate button handler
+        calculateBtn.addEventListener('click', async function() {
+            if (!isFormValid()) {
+                Toast.show('Please fix validation errors before calculating', 'warning');
+                return;
+            }
+            
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('resultsContainer').innerHTML = '';
+            calculateBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ingredients: ingredientData
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Calculation failed');
+                }
+                
+                displayResults(data.results);
+                Toast.show('Calculation completed successfully!', 'success');
+            } catch (error) {
+                document.getElementById('resultsContainer').innerHTML = 
+                    `<div class="error-message"><strong>Error:</strong> ${error.message}</div>`;
+                Toast.show(`Error: ${error.message}`, 'error', 5000);
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+                calculateBtn.disabled = !isFormValid();
+            }
+        });
+        
+        // Display results
+        function displayResults(results) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+            
+            for (const [param, value] of Object.entries(results)) {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'result-item';
+                
+                const displayValue = value === "NA" ? "NA" : 
+                                   typeof value === 'number' ? value.toFixed(4) : value;
+                
+                resultDiv.innerHTML = `
+                    <span class="result-label">${param}:</span>
+                    <span class="result-value">${displayValue}</span>
+                `;
+                container.appendChild(resultDiv);
+            }
+        }
+        
+        // Clear button handler
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            if (selectedIngredients.size > 0) {
+                if (!confirm('Are you sure you want to clear all ingredients?')) {
+                    return;
+                }
+            }
+            
+            selectedIngredients.clear();
+            ingredientData = {};
+            
+            checkboxes.forEach(cb => cb.checked = false);
+            
+            updateSelectedIngredients();
+            updateCalculateButton();
+            updateTotalQuantity();
+            
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="info-message">
+                    👆 Add ingredients from the left panel and click 'Calculate' to see results.
+                    <br><br>
+                    <strong>Instructions:</strong>
+                    <ol style="margin-top: 10px; padding-left: 20px;">
+                        <li>Select ingredients using the checkboxes</li>
+                        <li>Enter the quantity and cost per kg</li>
+                        <li>Click 'Calculate' to see nutritional analysis</li>
+                        <li>Use 'Clear All' to reset the formulation</li>
+                    </ol>
+                    <br>
+                    <strong>💡 Keyboard Shortcuts:</strong>
+                    <ul style="margin-top: 10px; padding-left: 20px;">
+                        <li><kbd>Enter</kbd> - Calculate results</li>
+                        <li><kbd>Ctrl+K</kbd> - Focus search</li>
+                        <li><kbd>Esc</kbd> - Clear search</li>
+                    </ul>
+                    <br>
+                    <strong>✨ Features:</strong>
+                    <ul style="margin-top: 10px; padding-left: 20px;">
+                        <li>Auto-save every 2 seconds</li>
+                        <li>Real-time validation</li>
+                        <li>Data persists on page refresh</li>
+                    </ul>
+                </div>
+            `;
+            
+            searchBox.value = '';
+            searchBox.dispatchEvent(new Event('input'));
+            
+            // Clear localStorage
+            localStorage.removeItem('feedFormulatorState');
+            lastSaveTime = null;
+            updateAutoSaveStatus();
+            
+            Toast.show('All data cleared', 'info');
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Enter key - Calculate
+            if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
+                if (document.activeElement.tagName !== 'INPUT') {
+                    e.preventDefault();
+                    if (!calculateBtn.disabled) {
+                        calculateBtn.click();
+                    }
+                }
+            }
+            
+            // Ctrl+K - Focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchBox.focus();
+                searchBox.select();
+            }
+            
+            // Escape - Clear search
+            if (e.key === 'Escape') {
+                if (document.activeElement === searchBox) {
+                    searchBox.value = '';
+                    searchBox.dispatchEvent(new Event('input'));
+                    searchBox.blur();
+                }
+            }
+            
+            // Show keyboard shortcuts hint on ? key
+            if (e.key === '?' && !e.ctrlKey && !e.metaKey) {
+                const shortcuts = document.getElementById('keyboardShortcuts');
+                shortcuts.classList.toggle('show');
+                setTimeout(() => shortcuts.classList.remove('show'), 3000);
+            }
+        });
+        
+        // Show keyboard shortcuts hint on first load
+        setTimeout(() => {
+            const shortcuts = document.getElementById('keyboardShortcuts');
+            shortcuts.classList.add('show');
+            setTimeout(() => shortcuts.classList.remove('show'), 4000);
+        }, 1000);
+        
+        // Initialize
+        loadSavedState();
+        updateCalculateButton();
+        updateTotalQuantity();
+        
+        // Prevent accidental page close with unsaved changes
+        window.addEventListener('beforeunload', function(e) {
+            if (selectedIngredients.size > 0) {
+                saveState(); // Force save before leaving
+            }
+        });
+        
+        console.log('✓ Suryacore Feed Formulator v2.0 initialized');
+        console.log('✓ Auto-save enabled');
+        console.log('✓ Keyboard shortcuts active');
+    </script>
+</body>
+</html>
