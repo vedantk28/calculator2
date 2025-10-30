@@ -984,21 +984,26 @@
         function displayResults(results) {
             const container = document.getElementById('resultsContainer');
             container.innerHTML = '';
-            
-            for (const [param, value] of Object.entries(results)) {
+
+    // Ensure "Total Quantity" is shown first
+            const orderedKeys = ["Total Quantity", ...Object.keys(results).filter(k => k !== "Total Quantity")];
+
+            for (const key of orderedKeys) {
+                const value = results[key];
                 const resultDiv = document.createElement('div');
                 resultDiv.className = 'result-item';
-                
-                const displayValue = value === "NA" ? "NA" : 
-                                   typeof value === 'number' ? value.toFixed(4) : value;
-                
+
+                const displayValue = value === "NA" ? "NA" :
+                             typeof value === 'number' ? value.toFixed(4) : value;
+
                 resultDiv.innerHTML = `
-                    <span class="result-label">${param}:</span>
+                    <span class="result-label">${key}:</span>
                     <span class="result-value">${displayValue}</span>
                 `;
                 container.appendChild(resultDiv);
-            }
-        }
+    }
+}
+
         
         // Clear button handler
         document.getElementById('clearBtn').addEventListener('click', function() {
