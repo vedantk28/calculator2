@@ -607,8 +607,11 @@ def index():
         return render_template('error.html', 
                              message="CSV file not loaded. Please ensure converted_file.csv exists."), 500
     
-    sorted_cells = sorted(prompt_cells)
-    ingredients = [(cell, LABELS.get(cell, cell)) for cell in sorted_cells]
+    ingredients = sorted(
+        [(cell, LABELS.get(cell, cell)) for cell in prompt_cells],
+        key=lambda x: x[1].lower()
+    )
+
     return render_template('index.html', ingredients=ingredients)
 
 @app.route('/calculate', methods=['POST'])
