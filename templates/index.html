@@ -565,7 +565,7 @@
 <body>
     <div class="toast-container" id="toastContainer"></div>
     
-    <h1 class="main-header">🌾 Suryacore Feed Formulator - v2.0</h1>
+    <h1 class="main-header">🌾 Suryacore Feed Formulator - v2.0 Beta</h1>
     <div class="auto-save-indicator">
         <span class="save-icon"></span>
         <span id="autoSaveStatus">Auto-save enabled</span>
@@ -868,30 +868,40 @@
             Array.from(selectedIngredients).sort().forEach(cell => {
                 const checkbox = Array.from(checkboxes).find(cb => cb.value === cell);
                 const label = checkbox.dataset.label;
-                
+    
+    // List of ingredients that use gms/ton
+                const gmPerTonIngredients = [
+                    'premix', 'bcomplex', 'toxinbinder', 'liver', 'dicerol', 
+                    'choline', 'osconite', 'anti coccidial', 'probiotic', 
+                    'biotin 2%', 'vit e 50%', 'agp', 'acidifier', 'emulsifier'
+                ];
+    
+    // Determine unit based on ingredient name
+                const unit = gmPerTonIngredients.includes(label.toLowerCase()) ? 'gm/ton' : 'kg';
+    
                 const savedData = ingredientData[cell] || { quantity: 0, cost: 0 };
                 const qtyValid = validateInput(savedData.quantity, QUANTITY_MIN, QUANTITY_MAX) && savedData.quantity > 0;
                 const costValid = validateInput(savedData.cost, COST_MIN, COST_MAX);
                 const itemValid = qtyValid && costValid;
-                
+    
                 const itemDiv = document.createElement('div');
                 itemDiv.className = `ingredient-item ${itemValid ? 'valid' : 'invalid'}`;
                 itemDiv.innerHTML = `
                     <div class="ingredient-name">${label}</div>
                     <div class="input-field">
-                        <label>Qty (kg)</label>
+                        <label>Qty (${unit})</label>
                         <input type="number" min="${QUANTITY_MIN}" max="${QUANTITY_MAX}" step="0.1" 
-                               value="${savedData.quantity}" 
-                               data-cell="${cell}" data-type="quantity" 
-                               class="qty-input ${qtyValid ? 'valid' : 'invalid'}">
+                            value="${savedData.quantity}" 
+                            data-cell="${cell}" data-type="quantity" data-unit="${unit}"
+                            class="qty-input ${qtyValid ? 'valid' : 'invalid'}">
                         <span class="validation-icon">${qtyValid ? '✓' : '✗'}</span>
                     </div>
                     <div class="input-field">
-                        <label>Cost (₹/kg)</label>
+                        <label>Cost (₹/${unit})</label>
                         <input type="number" min="${COST_MIN}" max="${COST_MAX}" step="0.01" 
-                               value="${savedData.cost}" 
-                               data-cell="${cell}" data-type="cost" 
-                               class="cost-input ${costValid ? 'valid' : 'invalid'}">
+                            value="${savedData.cost}" 
+                            data-cell="${cell}" data-type="cost" 
+                            class="cost-input ${costValid ? 'valid' : 'invalid'}">
                         <span class="validation-icon">${costValid ? '✓' : '✗'}</span>
                     </div>
                 `;
