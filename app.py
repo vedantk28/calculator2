@@ -539,9 +539,14 @@ class Calculator:
         user_quantity_k6 = self.ingredient_list.get("K6", {}).get('quantity', 0)
         return (user_quantity_k2 * 12000 + user_quantity_k6 * 600000) / self.calc_F1() if self.calc_F1() != 0 else 0.0
     
+    def calc_K26(self):
+        val = sum_range("K2", "K25", self.computed_cache) / 1000
+        self.computed_cache["K26"] = val
+        return val
+
     def calculate_all(self):
         results = {
-            "Total Quantity": self.calc_F1(),
+            "Total Quantity": self.calc_F1() + self.calc_K26(),
             "Cost per Bag": self.calc_F21(),
             "AFT": self.calc_H34(),
             "Arginine (%)": self.calc_F10(),
